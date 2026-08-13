@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Camp National JEMEVE 2026 — J'y serai</title>
+<style>
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:#111;color:#fff;font-family:Arial,sans-serif;
+    display:flex;justify-content:center;min-height:100vh;padding:20px;
+  }
+  .app{width:min(520px,100%);text-align:center}
+  h1{font-size:22px;margin:5px 0 8px}
+  p{margin:0 0 15px;color:#ddd}
+  .stage{
+    position:relative;width:100%;aspect-ratio:1070/1470;
+    background:url("affiche.jpg") center/cover no-repeat;
+    overflow:hidden;
+  }
+  /* Zone réservée à la photo dans le cadre de gauche */
+  .photo{
+    position:absolute;left:8.2%;top:49.2%;width:24.5%;height:24.5%;
+    border-radius:28px;object-fit:cover;display:none;
+  }
+  .jy{
+    position:absolute;left:6%;top:73.8%;width:29%;
+    display:none;background:#f6a900;color:#061d63;
+    font-weight:900;font-size:clamp(13px,3.6vw,22px);
+    padding:7px 3px;border-radius:10px;
+    text-shadow:none;
+  }
+  input{display:none}
+  .buttons{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+  button,.label{
+    border:0;border-radius:10px;padding:12px 18px;font-weight:800;
+    background:#f6a900;color:#071c60;cursor:pointer;font-size:15px;
+  }
+  button.secondary{background:#fff;color:#071c60}
+  #download{display:none}
+  .hint{font-size:12px;color:#aaa;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🔥 CAMP NATIONAL JEMEVE 2026</h1>
+  <p>Ajoute ta photo et crée ton affiche « J’Y SERAI ».</p>
+
+  <div class="stage" id="poster">
+    <img id="photo" class="photo" alt="Votre photo">
+    <div id="jy" class="jy">J’Y SERAI</div>
+  </div>
+
+  <div class="buttons">
+    <label class="label" for="file">📸 Ajouter ma photo</label>
+    <input id="file" type="file" accept="image/*">
+    <button id="download">⬇️ Télécharger mon affiche</button>
+  </div>
+  <div class="hint">Conseil : choisis une photo portrait, bien éclairée et avec le visage visible.</div>
+</div>
+
+<script>
+const file = document.getElementById('file');
+const photo = document.getElementById('photo');
+const jy = document.getElementById('jy');
+const download = document.getElementById('download');
+
+file.addEventListener('change', e => {
+  const f = e.target.files[0];
+  if(!f) return;
+  const url = URL.createObjectURL(f);
+  photo.src = url;
+  photo.style.display = 'block';
+  jy.style.display = 'block';
+  download.style.display = 'inline-block';
+});
+
+download.addEventListener('click', async () => {
+  const poster = document.getElementById('poster');
+  const w = poster.clientWidth, h = poster.clientHeight;
+  const canvas = document.createElement('canvas');
+  const scale = 3;
+  canvas.width = w*scale; canvas.height = h*scale;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(scale,scale);
+
+  const bg = new Image();
+  bg.src = 'affiche.jpg';
+  await bg.decode();
+  ctx.drawImage(bg,0,0,w,h);
+
+  if(photo.style.display !== 'none' && photo.complete){
+    const x=w*0.082, y=h*0.492, pw=w*0.245, ph=h*0.245;
+    ctx.save();
+    const r=28;
+    ctx.beginPath();
+    ctx.roundRect(x,y,pw,ph,r);
+    ctx.clip();
+
+    const ratio=Math.max(pw/photo.naturalWidth, ph/photo.naturalHeight);
+    const dw=photo.naturalWidth*ratio, dh=photo.naturalHeight*ratio;
+    ctx.drawImage(photo,x+(pw-dw)/2,y+(ph-dh)/2,dw,dh);
+    ctx.restore();
+
+    const tx=w*0.06, ty=h*0.738, tw=w*0.29, th=h*0.045;
+    ctx.fillStyle='#f6a900';
+    ctx.beginPath(); ctx.roundRect(tx,ty,tw,th,10); ctx.fill();
+    ctx.fillStyle='#061d63';
+    ctx.font='900 '+Math.max(18,w*0.036)+'px Arial';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('J’Y SERAI',tx+tw/2,ty+th/2);
+  }
+
+  const a=document.createElement('a');
+  a.download='Camp-JEMEVE-2026-JY-SERAI.jpg';
+  a.href=canvas.toDataURL('image/jpeg',0.95);
+  a.click();
+});
+</script>
+</body>
+</html>
